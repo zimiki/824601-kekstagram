@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
 
 * Студент: [Екатерина Булыгина](https://up.htmlacademy.ru/javascript/16/user/824601).
-* Наставник: `Неизвестно`.
+* Наставник: [Лев Балагуров]
 
 ---
 
