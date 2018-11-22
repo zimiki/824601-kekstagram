@@ -2,21 +2,21 @@
 var PHOTOS_LENGHT = 25;
 var MAX_COMMENTS = 3;
 
-// Дает случайную генерацию из массива  - OK
+// Дает случайную генерацию из массива
 var getRandArr = function (arr) {
   var rand = Math.random() * arr.length;
   rand = Math.floor(rand);
   return arr[rand];
 };
 
-// Дает случайное значение  по диапазону - OK
+// Дает случайное значение  по диапазону
 var getRandInt = function (min, max) {
   var rand = min + Math.random() * (max + 1 - min);
   rand = Math.floor(rand);
   return rand;
 };
 
-// Дает случайное значение да/нет  - OK
+// Дает случайное значение да/нет
 var randBolean = Boolean(Math.round(Math.random()));
 
 var COMMENTS = [
@@ -37,22 +37,22 @@ var DESCRIPTION = [
   'Вот это тачка!'
 ];
 
-// Выбирает количестко коментариев к фото
-var NumPhotoComments = getRandInt(1, MAX_COMMENTS);
 
-// Комментарии из 1 или 2 предложения
-var comment = getRandArr(COMMENTS);
-var twoSentence = randBolean;
-if (twoSentence === true) {
-  comment = getRandArr(COMMENTS) + getRandArr(COMMENTS);
-}
-
-// -- FALSE ---- Формирует массив  с коментариями к одной фото
 var generComments = function () {
+  // Выбирает количестко коментариев к фото
+  var NumPhotoComments = getRandInt(1, MAX_COMMENTS);
+  // Комментарии из 1 или 2 предложения
+  var comment = getRandArr(COMMENTS);
+  var twoSentence = randBolean;
+  if (twoSentence === true) {
+    comment = getRandArr(COMMENTS) + getRandArr(COMMENTS);
+  }
+  //  Формирует массив  с коментариями к одной фото
   var photoComments = [];
   for (var i = 0; i < NumPhotoComments; i++) {
     photoComments[i] = comment;
   }
+  return photoComments;
 };
 
 // Генерация всего массива 25 объеков
@@ -61,7 +61,8 @@ for (var k = 0; k < PHOTOS_LENGHT; k++) {
   photos[k] = {
     url: 25,
     likes: getRandInt(15, 200),
-    comments: generComments(), // тут какая - то  беда. Я думала если вызывать функцию то каждый раз будет разнный массив генерироваться
+    comments: generComments(),
+    description: getRandArr(DESCRIPTION)
   };
 }
 
