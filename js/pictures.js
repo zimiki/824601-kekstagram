@@ -59,20 +59,45 @@ var generComments = function () {
 var photos = [];
 for (var k = 0; k < PHOTOS_LENGHT; k++) {
   photos[k] = {
-    url: 25,
+    url: 1,
     likes: getRandInt(15, 200),
     comments: generComments(),
     description: getRandArr(DESCRIPTION)
   };
 }
 
-/* Проверка на тестовой странице
-var AAA = {name: 'Olgah', age: 15};
-document.write('<b>Массив</b>:<br>');
-document.write('Имя:' + photos[4].likes + ' / ' + photos[4].comments + ' / ' + photos[4].description + '.<br>');
-document.write('Имя:' + photos[5].likes + ' / ' + photos[5].comments + ' / ' + photos[5].description + '.<br>');
-document.write('<b>Массив</b>:<br>');
-document.write('Имя:' + AAA.name + AAA.age);
-document.write(generComments())
-;
+// Объявление элемента для вставки и фрагмента
+var blockInt = document.querySelector('.pictures');
+var fragmentPict = document.createDocumentFragment();
+
+for (var i = 0; i < PHOTOS_LENGHT; i++) {
+// Создаю клон по шаблону со всей вложенностью по <a>
+  var template = document.querySelector('#picture').content.querySelector('a');
+  var newElement = template.cloneNode(true);
+  fragmentPict .appendChild(newElement);
+}
+
+
+// Вставка нового элемента в DOM, поиск, замена значений по заданию
+blockInt.appendChild(fragmentPict);
+var photoSmall = document.querySelector('.picture__img');
+photoSmall.src = 'photos/1.jpg'; //                               ??????   1. а можно раньше во фрагменте изменить адрес изображения, пока его не в DOM
+var likesSmall = document.querySelector('.picture__likes');
+likesSmall.texContent = photos[3].likes; //                        ??????  2. в спан не вставилось значение
+var commentSmall = document.querySelector('.picture__comment');
+commentSmall = photos[3].comments.lenght; //                       ?????   3.тоже фигня получается
+
+/*
+<!-- Шаблон изображения случайного пользователя -->
+<template id="picture">
+  <a href="#" class="picture">
+    <img class="picture__img" src="" width="182" height="182" alt="Случайная фотография">
+    <p class="picture__info">
+      <span class="picture__comments"></span>
+      <span class="picture__likes"></span>
+    </p>
+  </a>
+</template>
 */
+
+
