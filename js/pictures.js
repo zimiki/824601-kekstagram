@@ -83,9 +83,9 @@ blockInt.appendChild(fragmentPict);
 var photoSmall = document.querySelector('.picture__img');
 photoSmall.src = 'photos/1.jpg'; //                               ??????   1. а можно раньше во фрагменте изменить адрес изображения, пока его не в DOM
 var likesSmall = document.querySelector('.picture__likes');
-likesSmall.texContent = photos[3].likes; //                        ??????  2. в спан не вставилось значение
-var commentSmall = document.querySelector('.picture__comment');
-commentSmall = photos[3].comments.lenght; //                       ?????   3.тоже фигня получается
+likesSmall.textContent = photos[3].likes;
+var commentSmall = document.querySelector('.picture__comments');
+commentSmall.textContent = 2; // photos[3].comments.lenght;
 
 /*
 <!-- Шаблон изображения случайного пользователя -->
