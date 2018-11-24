@@ -59,33 +59,31 @@ var generComments = function () {
 var photos = [];
 for (var k = 0; k < PHOTOS_LENGHT; k++) {
   photos[k] = {
-    url: 1,
+    url: 'photos/' + i + '.jpg',
     likes: getRandInt(15, 200),
     comments: generComments(),
     description: getRandArr(DESCRIPTION)
   };
 }
 
-// Объявление элемента для вставки и фрагмента
-var blockInt = document.querySelector('.pictures');
-var fragmentPict = document.createDocumentFragment();
+// Формирование фотографии по базе. С присвоением адреса картинки беда-беда не могу понять как делать
+var template = document.querySelector('#picture').content.querySelector('a');
+var renderPhoto = function (photo) {
+  var photoElement = template.cloneNode(true);
+  //   photoElement.querySelector('.picture__img').src = photos/1.jpg;     -Это мне не удается реализовать
+  photoElement.querySelector('.picture__likes').textContent = photos[i].likes;
+  photoElement.querySelector('.picture__comments').textContent = photos[i].comments.length;
+  return photoElement;
+};
 
+//  Создание и вставка фрагмента
+var blockInt = document.querySelector('.pictures');
+var fragment = document.createDocumentFragment();
 for (var i = 0; i < PHOTOS_LENGHT; i++) {
-// Создаю клон по шаблону со всей вложенностью по <a>
-  var template = document.querySelector('#picture').content.querySelector('a');
-  var newElement = template.cloneNode(true);
-  fragmentPict .appendChild(newElement);
+  fragment.appendChild(renderPhoto(photos[i]));
+  blockInt.appendChild(fragment);
 }
 
-
-// Вставка нового элемента в DOM, поиск, замена значений по заданию
-blockInt.appendChild(fragmentPict);
-var photoSmall = document.querySelector('.picture__img');
-photoSmall.src = 'photos/1.jpg'; //                               ??????   1. а можно раньше во фрагменте изменить адрес изображения, пока его не в DOM
-var likesSmall = document.querySelector('.picture__likes');
-likesSmall.textContent = photos[3].likes;
-var commentSmall = document.querySelector('.picture__comments');
-commentSmall.textContent = 2; // photos[3].comments.lenght;
 
 /*
 <!-- Шаблон изображения случайного пользователя -->
