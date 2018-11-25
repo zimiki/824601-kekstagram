@@ -73,7 +73,7 @@ for (var i = 0; i < PHOTOS_LENGHT; i++) {
   photosRand.push(a[0]);
 }
 
-// Формирование фотографии по базе. С присвоением адреса картинки
+// Создание фотографии в соответсвии с данными
 var template = document.querySelector('#picture').content.querySelector('a');
 var renderPhoto = function () {
   var photoElement = template.cloneNode(true);
@@ -83,12 +83,41 @@ var renderPhoto = function () {
   return photoElement;
 };
 
-//  Создание и вставка фрагмента
+//  Создание и вставка фрагмента маленьких фотографий
 var blockInt = document.querySelector('.pictures');
 var fragment = document.createDocumentFragment();
 for (var i = 0; i < photosRand.length; i++) {
   fragment.appendChild(renderPhoto());
   blockInt.appendChild(fragment);
 }
+
+// Поиск .big-picture и удаление у него класса .hidden
+var bigPicrure = document.querySelector('.big-picture');
+bigPicrure.classList.remove('hidden');
+
+// Заполнение его данными из первого элемента сгенерированного  массива свойств
+bigPicrure.querySelector('img').src = photosRand[0].url;
+bigPicrure.querySelector('.likes-count').textContent = photosRand[0].likes;
+bigPicrure.querySelector('.comments-count').textContent = photosRand[0].comments.length;
+bigPicrure.querySelector('.social__caption').textContent = photosRand[0].description;
+
+// Скрытие элементов п.5 задания
+bigPicrure.querySelector('.social__comment-count').classList.add('visually-hidden');
+bigPicrure.querySelector('.comments-loader').classList.add('visually-hidden');
+
+// Выборка коллекции с коментариями
+var socialComments = bigPicrure.querySelectorAll('.social__comments');
+
+for (var k = 0; k < socialComments.length; k++) {
+  socialComments[k].querySelector('img').src = 'img/avatar-' + getRandInt(1, 6) + '.svg';
+  socialComments[k].querySelector('p').textContent = photosRand[0].comments[k];
+}
+
+/* ????  Вопрос как удалить или добавить li в зависимости от  количества комментариев (от 1 до 3).
+Я думаю такой алгоритм:
+1. создаем шаблон по li
+2. генерируем фрагмент по данным
+3. заменяем   <ul class="social__comments">
+Или можно проще? */
 
 
