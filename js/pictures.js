@@ -37,7 +37,6 @@ var DESCRIPTION = [
   'Вот это тачка!'
 ];
 
-
 var generComments = function () {
   // Выбирает количестко коментариев к фото
   var NumPhotoComments = getRandInt(1, MAX_COMMENTS);
@@ -57,45 +56,39 @@ var generComments = function () {
 
 // Генерация всего массива 25 объеков
 var photos = [];
-for (var k = 0; k < PHOTOS_LENGHT; k++) {
-  photos[k] = {
-    url: 'photos/' + i + '.jpg',
+for (var i = 0; i < PHOTOS_LENGHT; i++) {
+  photos[i] = {
+    url: 'photos/' + (i + 1) + '.jpg',
     likes: getRandInt(15, 200),
     comments: generComments(),
     description: getRandArr(DESCRIPTION)
   };
 }
 
-// Формирование фотографии по базе. С присвоением адреса картинки беда-беда не могу понять как делать
+// Генерация случайного массива  из исходного, очень важно не забыть занулить длинну массива на push
+var photosRand = [];
+for (var i = 0; i < PHOTOS_LENGHT; i++) {
+  var randSpliceNum = getRandInt(1, photos.length);
+  var a = photos.splice((randSpliceNum - 1), 1);
+  photosRand.push(a[0]);
+}
+
+// Формирование фотографии по базе. С присвоением адреса картинки
 var template = document.querySelector('#picture').content.querySelector('a');
-var renderPhoto = function (photo) {
+var renderPhoto = function () {
   var photoElement = template.cloneNode(true);
-  //   photoElement.querySelector('.picture__img').src = photos/1.jpg;     -Это мне не удается реализовать
-  photoElement.querySelector('.picture__likes').textContent = photos[i].likes;
-  photoElement.querySelector('.picture__comments').textContent = photos[i].comments.length;
+  photoElement.querySelector('.picture__img').src = photosRand[i].url;
+  photoElement.querySelector('.picture__likes').textContent = photosRand[i].likes;
+  photoElement.querySelector('.picture__comments').textContent = photosRand[i].comments.length;
   return photoElement;
 };
 
 //  Создание и вставка фрагмента
 var blockInt = document.querySelector('.pictures');
 var fragment = document.createDocumentFragment();
-for (var i = 0; i < PHOTOS_LENGHT; i++) {
-  fragment.appendChild(renderPhoto(photos[i]));
+for (var i = 0; i < photosRand.length; i++) {
+  fragment.appendChild(renderPhoto());
   blockInt.appendChild(fragment);
 }
-
-
-/*
-<!-- Шаблон изображения случайного пользователя -->
-<template id="picture">
-  <a href="#" class="picture">
-    <img class="picture__img" src="" width="182" height="182" alt="Случайная фотография">
-    <p class="picture__info">
-      <span class="picture__comments"></span>
-      <span class="picture__likes"></span>
-    </p>
-  </a>
-</template>
-*/
 
 
