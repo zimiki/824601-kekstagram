@@ -1,6 +1,6 @@
 'use strict';
 var PHOTOS_LENGHT = 25;
-var MAX_COMMENTS = 3;
+var MAX_COMMENTS = 4;
 
 // Дает случайную генерацию из массива
 var getRandArr = function (arr) {
@@ -37,35 +37,38 @@ var DESCRIPTION = [
   'Вот это тачка!'
 ];
 
+//  Создает случайный комментарий из 1 или 2 предложений
 var generComments = function () {
-  // Выбирает количестко коментариев к фото
-  var NumPhotoComments = getRandInt(1, MAX_COMMENTS);
-  // Комментарии из 1 или 2 предложения
   var comment = getRandArr(COMMENTS);
   var twoSentence = randBolean;
   if (twoSentence === true) {
-    comment = getRandArr(COMMENTS) + getRandArr(COMMENTS);
+    comment = getRandArr(COMMENTS) + ' ' + getRandArr(COMMENTS);
   }
-  //  Формирует массив  с коментариями к одной фото
+  return comment;
+};
+
+//  Формирует массив  с коментариями к одной фото
+var generArrComments = function () {
+  var NumPhotoComments = getRandInt(1, MAX_COMMENTS);
   var photoComments = [];
   for (var i = 0; i < NumPhotoComments; i++) {
-    photoComments[i] = comment;
+    photoComments[i] = generComments();
   }
   return photoComments;
 };
 
-// Генерация всего массива 25 объеков
+// Генерация массива данных всех фотографий, со всеми возможными ссылками на изображения
 var photos = [];
 for (var i = 0; i < PHOTOS_LENGHT; i++) {
   photos[i] = {
     url: 'photos/' + (i + 1) + '.jpg',
     likes: getRandInt(15, 200),
-    comments: generComments(),
+    comments: generArrComments(),
     description: getRandArr(DESCRIPTION)
   };
 }
 
-// Генерация случайного массива  из исходного, очень важно не забыть занулить длинну массива на push
+// Генерация случайного массива  данных из исходного
 var photosRand = [];
 for (var i = 0; i < PHOTOS_LENGHT; i++) {
   var randSpliceNum = getRandInt(1, photos.length);
@@ -95,7 +98,7 @@ for (var i = 0; i < photosRand.length; i++) {
 var bigPicrure = document.querySelector('.big-picture');
 bigPicrure.classList.remove('hidden');
 
-// Заполнение его данными из первого элемента сгенерированного  массива свойств
+// Заполнение блока большой фотографии данными из первого элемента сгенерированного  массива свойств, так указано в задании
 bigPicrure.querySelector('img').src = photosRand[0].url;
 bigPicrure.querySelector('.likes-count').textContent = photosRand[0].likes;
 bigPicrure.querySelector('.comments-count').textContent = photosRand[0].comments.length;
@@ -105,19 +108,32 @@ bigPicrure.querySelector('.social__caption').textContent = photosRand[0].descrip
 bigPicrure.querySelector('.social__comment-count').classList.add('visually-hidden');
 bigPicrure.querySelector('.comments-loader').classList.add('visually-hidden');
 
-// Выборка коллекции с коментариями
-var socialComments = bigPicrure.querySelectorAll('.social__comments');
 
-for (var k = 0; k < socialComments.length; k++) {
-  socialComments[k].querySelector('img').src = 'img/avatar-' + getRandInt(1, 6) + '.svg';
-  socialComments[k].querySelector('p').textContent = photosRand[0].comments[k];
+// Выборка коментрия, чтобы сохранился шаблон.  Удаление коментариев созданых в верстве
+var socialComment = bigPicrure.querySelector('.social__comment');
+var socialComments = bigPicrure.querySelector('.social__comments');
+
+// Функция удаления всех потомков, применяем ее на список коментариев
+var removeAllChildren = function (elem) {
+  while (elem.lastChild) {
+    elem.removeChild(elem.lastChild);
+  }
+};
+removeAllChildren(socialComments);
+
+// Создание комментария по шаблону
+var renderComment = function () {
+  var commentElement = socialComment.cloneNode(true);
+  commentElement.querySelector('img').src = 'img/avatar-' + getRandInt(1, 6) + '.svg';
+  commentElement.querySelector('p').textContent = photosRand[0].comments[i];
+  return commentElement;
+};
+
+//  Создание и вставка фрагмента комментариев
+var fragmentComments = document.createDocumentFragment();
+for (var i = 0; i < photosRand[0].comments.length; i++) {
+  fragmentComments.appendChild(renderComment());
+  socialComments.appendChild(fragmentComments);
 }
-
-/* ????  Вопрос как удалить или добавить li в зависимости от  количества комментариев (от 1 до 3).
-Я думаю такой алгоритм:
-1. создаем шаблон по li
-2. генерируем фрагмент по данным
-3. заменяем   <ul class="social__comments">
-Или можно проще? */
 
 
