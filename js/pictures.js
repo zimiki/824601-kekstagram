@@ -1,13 +1,24 @@
 'use strict';
 
-// Выбирает  случайное значение  по диапазону
+// БЛОК ВЫБОРА СЛУЧАЙНОГО
+
+// 1. Выбирает  случайное значение  по диапазону
 var getRandInt = function (min, max) {
   var rand = min + Math.random() * (max + 1 - min);
   rand = Math.floor(rand);
   return rand;
 };
+// 2. Выбирает случайное значение из массива
+var getRandArr = function (arr) {
+  var rand = Math.random() * arr.length;
+  rand = Math.floor(rand);
+  return arr[rand];
+};
+// 3. Выбирает случайное значение да/нет
+var randBolean = Boolean(Math.round(Math.random()));
 
-// Создание случайных данных
+
+// СОЗДАНИЕ СЛУЧАЙНЫХ ДАННЫХ
 function generateMockData() {
   var data = {
     photos: [],
@@ -31,16 +42,6 @@ function generateMockData() {
     'Цените каждое мгновенье. Цените тех, кто рядом с вами и отгоняйте все сомненья. Не обижайте всех словами......',
     'Вот это тачка!'
   ];
-
-  // Выбирает случайное значение из массива
-  var getRandArr = function (arr) {
-    var rand = Math.random() * arr.length;
-    rand = Math.floor(rand);
-    return arr[rand];
-  };
-
-  // Выбирает случайное значение да/нет
-  var randBolean = Boolean(Math.round(Math.random()));
 
   //  Создает случайный комментарий из 1 или 2 предложений
   var generComments = function () {
@@ -73,7 +74,7 @@ function generateMockData() {
     };
   }
 
-  // Генерация случайной последовательности, путем создание нового массива  данных из исходного
+  // Формирование случайной последовательности, путем создание нового массива  данных из исходного
   for (var k = 0; k < PHOTOS_LENGHT; k++) {
     var randSpliceNum = getRandInt(1, originPhotos.length);
     var a = originPhotos.splice((randSpliceNum - 1), 1);
@@ -82,10 +83,14 @@ function generateMockData() {
   return data;
 }
 
+
+// ГЕНЕРАЦИЯ НА ОСНОВЕ ДАННЫХ
 function renderAll(data) {
+
+  // Создание страницы с маленькими фотографиями
   function renderPhotosOnPage() {
-    // Создание фотографии в соответсвии с данными
-    var template = document.querySelector('#picture').content.querySelector('a');
+    // - создание одной фотографии в соответсвии с данными
+
     var renderPhoto = function () {
       var photoElement = template.cloneNode(true);
       photoElement.querySelector('.picture__img').src = data.photos[i].url;
@@ -93,7 +98,7 @@ function renderAll(data) {
       photoElement.querySelector('.picture__comments').textContent = data.photos[i].comments.length;
       return photoElement;
     };
-    //  Создание и вставка фрагмента маленьких фотографий
+    //  - создание и вставка фрагмента маленьких фотографий
     var blockInt = document.querySelector('.pictures');
     var fragment = document.createDocumentFragment();
     for (var i = 0; i < data.photos.length; i++) {
@@ -102,55 +107,56 @@ function renderAll(data) {
     }
   }
 
-  // Поиск .big-picture и удаление у него класса .hidden
-  var bigPicrure = document.querySelector('.big-picture');
-  function renderBigPicturesOnPage() {
-    bigPicrure.classList.remove('hidden');
-
-    // Заполнение блока большой фотографии данными из первого элемента сгенерированного  массива свойств, так указано в задании
-    bigPicrure.querySelector('img').src = data.photos[data.selectPhotoIndex].url;
-    bigPicrure.querySelector('.likes-count').textContent = data.photos[data.selectPhotoIndex].likes;
-    bigPicrure.querySelector('.comments-count').textContent = data.photos[data.selectPhotoIndex].comments.length;
-    bigPicrure.querySelector('.social__caption').textContent = data.photos[data.selectPhotoIndex].description;
-
-    // Скрытие элементов п.5 задания
-    bigPicrure.querySelector('.social__comment-count').classList.add('visually-hidden');
-    bigPicrure.querySelector('.comments-loader').classList.add('visually-hidden');
+  // Изменение блока с большой картинкой
+  function renderBigPicturesOnPage(bigStyle) {
+    bigStyle.classList.remove('hidden');
+    // - заполнение блока большой фотографии данными из первого элемента сгенерированного  массива свойств, так указано в задании
+    bigStyle.querySelector('img').src = data.photos[data.selectPhotoIndex].url;
+    bigStyle.querySelector('.likes-count').textContent = data.photos[data.selectPhotoIndex].likes;
+    bigStyle.querySelector('.comments-count').textContent = data.photos[data.selectPhotoIndex].comments.length;
+    bigStyle.querySelector('.social__caption').textContent = data.photos[data.selectPhotoIndex].description;
+    // - скрытие элементов п.5 задания
+    bigStyle.querySelector('.social__comment-count').classList.add('visually-hidden');
+    bigStyle.querySelector('.comments-loader').classList.add('visually-hidden');
   }
 
-  function renderCommentsOnPage() {
-    // Выборка коментрия, чтобы сохранился шаблон.  Удаление коментариев созданых в верстве
-    var socialComment = bigPicrure.querySelector('.social__comment');
-    var socialComments = bigPicrure.querySelector('.social__comments');
-
-    // Функция удаления всех потомков, применяем ее на список коментариев
+  // Изменение блока с комментариями к большой фото
+  function renderCommentsOnPage(bigStyle) {
+    // - выборка коментрия, чтобы сохранился шаблон.  Удаление коментариев созданых в верстве
+    var socialComment = bigStyle.querySelector('.social__comment');
+    var socialComments = bigStyle.querySelector('.social__comments');
+    // - удаление всех потомков, применяем ее на список коментариев
     var removeAllChildren = function (elem) {
       while (elem.lastChild) {
         elem.removeChild(elem.lastChild);
       }
     };
     removeAllChildren(socialComments);
-
-    // Создание комментария по шаблону
+    // - создание одного комментария по шаблону из верстки
     var renderComment = function () {
       var commentElement = socialComment.cloneNode(true);
       commentElement.querySelector('img').src = 'img/avatar-' + getRandInt(1, 6) + '.svg';
       commentElement.querySelector('p').textContent = data.photos[0].comments[i];
       return commentElement;
     };
-
-    //  Создание и вставка фрагмента комментариев
+    // - создание и вставка фрагмента комментариев
     var fragmentComments = document.createDocumentFragment();
     for (var i = 0; i < data.photos[0].comments.length; i++) {
       fragmentComments.appendChild(renderComment());
       socialComments.appendChild(fragmentComments);
     }
   }
+
+  // Запуск отрисовки элементов на основе данных
+  var template = document.querySelector('#picture').content.querySelector('a'); // шаблон для маленьких фото
+  var bigPicrure = document.querySelector('.big-picture'); // шаблон для больших фото
   renderPhotosOnPage(data.photos);
-  renderBigPicturesOnPage(data.photos[data.selectPhotoIndex]);
-  renderCommentsOnPage(data.photos);
+  renderBigPicturesOnPage(bigPicrure);
+  renderCommentsOnPage(bigPicrure);
 }
 
+
+// Запуск функций срипта
 var mockData = generateMockData();
 renderAll(mockData);
 
