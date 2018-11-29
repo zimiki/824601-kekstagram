@@ -16,7 +16,8 @@ var getRandArr = function (arr) {
 };
 // 3. Выбирает случайное значение да/нет
 var randBolean = Boolean(Math.round(Math.random()));
-
+// 4. Магические числа
+var ESC_KEYCODE = 27;
 
 // СОЗДАНИЕ СЛУЧАЙНЫХ ДАННЫХ
 function generateMockData() {
@@ -109,7 +110,6 @@ function renderAll(data) {
 
   // Изменение блока с большой картинкой
   function renderBigPicturesOnPage(bigStyle) {
-    bigStyle.classList.remove('hidden');
     // - заполнение блока большой фотографии данными из первого элемента сгенерированного  массива свойств, так указано в задании
     bigStyle.querySelector('img').src = data.photos[data.selectPhotoIndex].url;
     bigStyle.querySelector('.likes-count').textContent = data.photos[data.selectPhotoIndex].likes;
@@ -156,8 +156,95 @@ function renderAll(data) {
 }
 
 
+// Блок для описания сценария popup большой фотографии
+var showBigPictureModal = function () {
+  var bigPicture = document.querySelector('.big-picture');
+  var openBigPicture = document.querySelectorAll('.picture__img');
+  var closeBigPicture = bigPicture.querySelector('#picture-cancel');
+
+  // - открытие большой фотографии при нажатии на любую из галерии маленьких
+  for (var i = 0; i < openBigPicture.length; i++) {
+    openBigPicture[i].addEventListener('click', function () {
+      bigPicture.classList.remove('hidden');
+      document.addEventListener('keydown', onEscPress);
+    });
+  }
+  // описание как закрывается окно
+  var closeModal = function () {
+    bigPicture.classList.add('hidden');
+    document.removeEventListener('keydown', onEscPress);
+  };
+  // -кнопка закрыть большую фотографию
+  closeBigPicture.addEventListener('click', function () {
+    closeModal();
+  });
+  // -закрытие окна по Esc
+  var onEscPress = function (evt) {
+    if (evt.keyCode === ESC_KEYCODE) {
+      closeModal();
+    }
+  };
+};
+
+
+// Блок для описания сценария popup фильтров фотографий
+var showUploadModal = function () {
+  var filtersSetting = document.querySelector('.img-upload__overlay');
+  var openUploadFile = document.querySelector('#upload-file');
+  var closeFiltersSetting = document.querySelector('#upload-cancel');
+
+  // - открытие большой фото-фильтров
+  openUploadFile.addEventListener('change', function () {
+    filtersSetting .classList.remove('hidden');
+    document.addEventListener('keydown', onEscPress);
+  });
+  // описание как закрывается окно фото-фильтров
+  var closeModal = function () {
+    filtersSetting.classList.add('hidden'); // !!!! Не сделано- обратите внимание на то, что при закрытии формы, дополнительно нужно сбрасывать значение поля выбора файла #upload-file.
+    document.removeEventListener('keydown', onEscPress);
+  };
+  // -кнопка закрыть настройку фото-фильтров
+  closeFiltersSetting.addEventListener('click', function () {
+    closeModal();
+  });
+  // -закрытие окна по Esc
+  var onEscPress = function (evt) {
+    if (evt.keyCode === ESC_KEYCODE) {
+      closeModal();
+    }
+  };
+};
+
+// _______Блок расчета и наложения эффекта________
+var EFFECT_CHROME_MAX = 1;
+var EFFECT_SEPIA_MAX = 1;
+var EFFECT_MARVIN_MAX = 100; // %
+var EFFECT_PHOBOS_MAX = 5;
+var EFFECT_HEAT_MAX = 3;
+
+var levelLine = document.querySelector('.effect-level__line');
+var effectLevelPin = document.querySelector('.effect-level__pin');
+var effectHeat = document.querySelector('.effects__preview--heat');
+var photo = document.querySelector('.img-upload__preview');
+
+// ? определить чекнутый элемент и передать его
+
+
+// Функция расчета значания от максимального
+var onEffectLevelPin = function (evt) {
+  var coordsLevelLine = levelLine.getBoundingClientRect();
+  var leveLineWidth = coordsLevelLine.right - coordsLevelLine.left;
+  var valueEffectLevel = (evt.clientX - coordsLevelLine.left) / leveLineWidth * EFFECT_HEAT_MAX;
+  effectHeat.style.fiter = 'brightness(' + valueEffectLevel + ')';
+  photo.classList.add('effects__preview--heat');
+};
+
+// Отлавливает событие отпускание пина
+effectLevelPin.addEventListener('mouseup', onEffectLevelPin);
+
+
 // Запуск функций срипта
 var mockData = generateMockData();
 renderAll(mockData);
-
-
+showBigPictureModal();
+showUploadModal();
