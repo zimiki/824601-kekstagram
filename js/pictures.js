@@ -255,7 +255,7 @@ var showUploadModal = function () {
   var effectRadioButton = document.querySelectorAll('.effects__radio');
   var levelLine = document.querySelector('.effect-level__line');
   var effectLevelPin = document.querySelector('.effect-level__pin');
-  var photo = document.querySelector('.img-upload__preview');
+  var uploadPreview = document.querySelector('.img-upload__preview');
 
 
   // функция которая при клике на radio button проверяет, что чекнуто и возвращает номер объекта из массива фильтров
@@ -277,8 +277,8 @@ var showUploadModal = function () {
   // При переключении фильтра, уровень эффекта должен сразу cбрасываться до начального состояния
   var onEffectRadioButton = function () {
     for (var i = 0; i < EFFECTS.length; i++) {
-      if (photo.classList.contains(EFFECTS[i].classList)) {
-        photo.classList.remove(EFFECTS[i].classList);
+      if (uploadPreview.classList.contains(EFFECTS[i].classList)) {
+        uploadPreview.classList.remove(EFFECTS[i].classList);
       }
     }
   };
@@ -289,9 +289,8 @@ var showUploadModal = function () {
     var coordsLevelLine = levelLine.getBoundingClientRect();
     var leveLineWidth = coordsLevelLine.right - coordsLevelLine.left;
     var valueEffectLevel = (evt.clientX - coordsLevelLine.left) / leveLineWidth * EFFECTS[i].maxEffect;
-    var effect = document.querySelector('.effects__preview--' + EFFECTS[i].name);
-    effect.style.fiter = EFFECTS[i].filter + '(' + valueEffectLevel + ')';
-    photo.classList.add(EFFECTS[i].classList);
+    uploadPreview.classList.add(EFFECTS[i].classList);
+    uploadPreview.style.fiter = EFFECTS[i].filter + '(' + valueEffectLevel + ')';
   };
 
   // Устанавливаем слушателей на radio button и pin
