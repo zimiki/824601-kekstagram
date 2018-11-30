@@ -187,6 +187,10 @@ var showBigPictureModal = function () {
 };
 
 
+/* !!!!!!!!!   С ЭТИМ Я НЕ РАЗОБРАЛАСЬ ЧТО ЗНАЧИТ СБРАСЫВАТЬ ЗНАЧЕНИЕ !!!!!
+При написании обработчиков, реагирующих на закрытие формы, обратите внимание на то, что при закрытии формы, дополнительно нужно
+сбрасывать значение поля выбора файла #upload-file. */
+
 // Блок для описания сценария popup фильтров фотографий
 var showUploadModal = function () {
   var filtersSetting = document.querySelector('.img-upload__overlay');
@@ -213,38 +217,94 @@ var showUploadModal = function () {
       closeModal();
     }
   };
+
+  // Применение фиьтров
+  var EFFECTS = [
+    {name: 'none',
+      filter: 'none',
+      maxEffect: 1
+    },
+
+    {name: 'chrome',
+      filter: 'grayscale',
+      maxEffect: 1,
+      classList: 'effects__preview--chrome'},
+
+    {name: 'sepia',
+      filter: 'sepia',
+      maxEffect: 1,
+      classList: 'effects__preview--sepia'},
+
+    {name: 'marvin',
+      filter: 'invert',
+      maxEffect: 100, // %
+      classList: 'effects__preview--marvin'},
+
+    {name: 'phobos',
+      filter: 'blur',
+      maxEffect: 5,
+      classList: 'effects__preview--phobos'},
+
+    {name: 'heat',
+      filter: 'brightness',
+      maxEffect: 3,
+      classList: 'effects__preview--heat'},
+  ];
+
+  // Ищем все необходимые перемееные: radio button, блок со шкалой, пин на шкале, и изображение для применения фильтра
+  var effectRadioButton = document.querySelectorAll('.effects__radio');
+  var levelLine = document.querySelector('.effect-level__line');
+  var effectLevelPin = document.querySelector('.effect-level__pin');
+  var photo = document.querySelector('.img-upload__preview');
+
+
+  // функция которая при клике на radio button проверяет, что чекнуто и возвращает номер объекта из массива фильтров
+  var getFilters = function () {
+    var currentRadio = 'heat';
+    for (var i = 0; i < effectRadioButton.length; i++) {
+      if (effectRadioButton[i].checked === true) {
+        currentRadio = effectRadioButton[i].value;
+      }
+    }
+    for (var k = 0; k < EFFECTS.length; k++) {
+      if (currentRadio === EFFECTS[k].name) {
+        var numberFilter = k;
+      }
+    }
+    return numberFilter;
+  };
+
+  // При переключении фильтра, уровень эффекта должен сразу cбрасываться до начального состояния
+  var onEffectRadioButton = function () {
+    for (var i = 0; i < EFFECTS.length; i++) {
+      if (photo.classList.contains(EFFECTS[i].classList)) {
+        photo.classList.remove(EFFECTS[i].classList);
+      }
+    }
+  };
+
+  // Функция расчета расчета степени эффекта, присвоение класса картинке, изменение значений в классе
+  var onEffectLevelPin = function (evt) {
+    var i = getFilters();
+    var coordsLevelLine = levelLine.getBoundingClientRect();
+    var leveLineWidth = coordsLevelLine.right - coordsLevelLine.left;
+    var valueEffectLevel = (evt.clientX - coordsLevelLine.left) / leveLineWidth * EFFECTS[i].maxEffect;
+    var effect = document.querySelector('.effects__preview--' + EFFECTS[i].name);
+    effect.style.fiter = EFFECTS[i].filter + '(' + valueEffectLevel + ')';
+    photo.classList.add(EFFECTS[i].classList);
+  };
+
+  // Устанавливаем слушателей на radio button и pin
+  for (var k = 0; k < effectRadioButton.length; k++) {
+    effectRadioButton[k].addEventListener('click', onEffectRadioButton);
+  }
+  effectLevelPin.addEventListener('mouseup', onEffectLevelPin);
 };
-
-// _______Блок расчета и наложения эффекта________
-var EFFECT_CHROME_MAX = 1;
-var EFFECT_SEPIA_MAX = 1;
-var EFFECT_MARVIN_MAX = 100; // %
-var EFFECT_PHOBOS_MAX = 5;
-var EFFECT_HEAT_MAX = 3;
-
-var levelLine = document.querySelector('.effect-level__line');
-var effectLevelPin = document.querySelector('.effect-level__pin');
-var effectHeat = document.querySelector('.effects__preview--heat');
-var photo = document.querySelector('.img-upload__preview');
-
-// ? определить чекнутый элемент и передать его
-
-
-// Функция расчета значания от максимального
-var onEffectLevelPin = function (evt) {
-  var coordsLevelLine = levelLine.getBoundingClientRect();
-  var leveLineWidth = coordsLevelLine.right - coordsLevelLine.left;
-  var valueEffectLevel = (evt.clientX - coordsLevelLine.left) / leveLineWidth * EFFECT_HEAT_MAX;
-  effectHeat.style.fiter = 'brightness(' + valueEffectLevel + ')';
-  photo.classList.add('effects__preview--heat');
-};
-
-// Отлавливает событие отпускание пина
-effectLevelPin.addEventListener('mouseup', onEffectLevelPin);
-
 
 // Запуск функций срипта
 var mockData = generateMockData();
 renderAll(mockData);
 showBigPictureModal();
 showUploadModal();
+
+
