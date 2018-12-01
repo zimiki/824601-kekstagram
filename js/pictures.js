@@ -228,33 +228,37 @@ var showUploadModal = function () {
     {name: 'chrome',
       filter: 'grayscale',
       maxEffect: 1,
-      classList: 'effects__preview--chrome'},
+      classList: 'effects__preview--chrome',
+      metrick: ''},
 
     {name: 'sepia',
       filter: 'sepia',
       maxEffect: 1,
-      classList: 'effects__preview--sepia'},
+      classList: 'effects__preview--sepia',
+      metrick: ''},
 
     {name: 'marvin',
       filter: 'invert',
-      maxEffect: 100, // %
-      classList: 'effects__preview--marvin'},
+      maxEffect: 100,
+      classList: 'effects__preview--marvin',
+      metrick: '%'},
 
     {name: 'phobos',
       filter: 'blur',
       maxEffect: 5,
-      classList: 'effects__preview--phobos'},
+      classList: 'effects__preview--phobos',
+      metrick: 'px'},
 
     {name: 'heat',
       filter: 'brightness',
       maxEffect: 3,
-      classList: 'effects__preview--heat'},
+      classList: 'effects__preview--heat',
+      metrick: ''},
   ];
 
-  // Ищем все необходимые перемееные: radio button, блок со шкалой, пин на шкале, и изображение для применения фильтра
+  // Ищем все необходимые перемееные: radio button, блок со шкалой, и изображение для применения фильтра
   var effectRadioButton = document.querySelectorAll('.effects__radio');
   var levelLine = document.querySelector('.effect-level__line');
-  var effectLevelPin = document.querySelector('.effect-level__pin');
   var uploadPreview = document.querySelector('.img-upload__preview');
 
 
@@ -276,28 +280,24 @@ var showUploadModal = function () {
 
   // При переключении фильтра, уровень эффекта должен сразу cбрасываться до начального состояния
   var onEffectRadioButton = function () {
-    for (var i = 0; i < EFFECTS.length; i++) {
-      if (uploadPreview.classList.contains(EFFECTS[i].classList)) {
-        uploadPreview.classList.remove(EFFECTS[i].classList);
-      }
-    }
+    uploadPreview.style.filter = '';
   };
 
   // Функция расчета расчета степени эффекта, присвоение класса картинке, изменение значений в классе
-  var onEffectLevelPin = function (evt) {
+  var onEffectLevelLine = function (evt) {
     var i = getFilters();
     var coordsLevelLine = levelLine.getBoundingClientRect();
     var leveLineWidth = coordsLevelLine.right - coordsLevelLine.left;
     var valueEffectLevel = (evt.clientX - coordsLevelLine.left) / leveLineWidth * EFFECTS[i].maxEffect;
-    uploadPreview.classList.add(EFFECTS[i].classList);
-    uploadPreview.style.fiter = EFFECTS[i].filter + '(' + valueEffectLevel + ')';
+    uploadPreview.style.filter = EFFECTS[i].filter + '(' + valueEffectLevel + EFFECTS[i].metrick + ')';
+
   };
 
   // Устанавливаем слушателей на radio button и pin
   for (var k = 0; k < effectRadioButton.length; k++) {
     effectRadioButton[k].addEventListener('click', onEffectRadioButton);
   }
-  effectLevelPin.addEventListener('mouseup', onEffectLevelPin);
+  levelLine.addEventListener('mouseup', onEffectLevelLine);
 };
 
 // Запуск функций срипта
