@@ -300,10 +300,23 @@ var showUploadModal = function () {
   levelLine.addEventListener('mouseup', onEffectLevelLine);
 };
 
+
+// Функция валидации
+function getValidity() {
+  var form = document.querySelector('#upload-select-image');
+  var inputTags = document.querySelector('.text__hashtags').value;
+  form.addEventListener('submit', function () {
+    if (inputTags.length > 10) {
+      return false;
+    }
+    return true;
+  });
+}
+
 // Запуск функций срипта
 var mockData = generateMockData();
 renderAll(mockData);
 showBigPictureModal();
 showUploadModal();
-
+getValidity();
 
