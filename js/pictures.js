@@ -16,7 +16,8 @@ var getRandArr = function (arr) {
 };
 // 3. Выбирает случайное значение да/нет
 var randBolean = Boolean(Math.round(Math.random()));
-
+// 4. Магические числа
+var ESC_KEYCODE = 27;
 
 // СОЗДАНИЕ СЛУЧАЙНЫХ ДАННЫХ
 function generateMockData() {
@@ -109,7 +110,6 @@ function renderAll(data) {
 
   // Изменение блока с большой картинкой
   function renderBigPicturesOnPage(bigStyle) {
-    bigStyle.classList.remove('hidden');
     // - заполнение блока большой фотографии данными из первого элемента сгенерированного  массива свойств, так указано в задании
     bigStyle.querySelector('img').src = data.photos[data.selectPhotoIndex].url;
     bigStyle.querySelector('.likes-count').textContent = data.photos[data.selectPhotoIndex].likes;
@@ -156,8 +156,154 @@ function renderAll(data) {
 }
 
 
+// Блок для описания сценария popup большой фотографии
+var showBigPictureModal = function () {
+  var bigPicture = document.querySelector('.big-picture');
+  var openBigPicture = document.querySelectorAll('.picture__img');
+  var closeBigPicture = bigPicture.querySelector('#picture-cancel');
+
+  // - открытие большой фотографии при нажатии на любую из галерии маленьких
+  for (var i = 0; i < openBigPicture.length; i++) {
+    openBigPicture[i].addEventListener('click', function () {
+      bigPicture.classList.remove('hidden');
+      document.addEventListener('keydown', onEscPress);
+    });
+  }
+  // описание как закрывается окно
+  var closeModal = function () {
+    bigPicture.classList.add('hidden');
+    document.removeEventListener('keydown', onEscPress);
+  };
+  // -кнопка закрыть большую фотографию
+  closeBigPicture.addEventListener('click', function () {
+    closeModal();
+  });
+  // -закрытие окна по Esc
+  var onEscPress = function (evt) {
+    if (evt.keyCode === ESC_KEYCODE) {
+      closeModal();
+    }
+  };
+};
+
+
+/* !!!!!!!!!   С ЭТИМ Я НЕ РАЗОБРАЛАСЬ ЧТО ЗНАЧИТ СБРАСЫВАТЬ ЗНАЧЕНИЕ !!!!!
+При написании обработчиков, реагирующих на закрытие формы, обратите внимание на то, что при закрытии формы, дополнительно нужно
+сбрасывать значение поля выбора файла #upload-file. */
+
+// Блок для описания сценария popup фильтров фотографий
+var showUploadModal = function () {
+  var filtersSetting = document.querySelector('.img-upload__overlay');
+  var openUploadFile = document.querySelector('#upload-file');
+  var closeFiltersSetting = document.querySelector('#upload-cancel');
+
+  // - открытие большой фото-фильтров
+  openUploadFile.addEventListener('change', function () {
+    filtersSetting .classList.remove('hidden');
+    document.addEventListener('keydown', onEscPress);
+  });
+  // описание как закрывается окно фото-фильтров
+  var closeModal = function () {
+    filtersSetting.classList.add('hidden'); // !!!! Не сделано- обратите внимание на то, что при закрытии формы, дополнительно нужно сбрасывать значение поля выбора файла #upload-file.
+    document.removeEventListener('keydown', onEscPress);
+  };
+  // -кнопка закрыть настройку фото-фильтров
+  closeFiltersSetting.addEventListener('click', function () {
+    closeModal();
+  });
+  // -закрытие окна по Esc
+  var onEscPress = function (evt) {
+    if (evt.keyCode === ESC_KEYCODE) {
+      closeModal();
+    }
+  };
+
+  // Применение фиьтров
+  var EFFECTS = [
+    {name: 'none',
+      filter: 'none',
+      maxEffect: 1
+    },
+
+    {name: 'chrome',
+      filter: 'grayscale',
+      maxEffect: 1,
+      classList: 'effects__preview--chrome',
+      metrick: ''},
+
+    {name: 'sepia',
+      filter: 'sepia',
+      maxEffect: 1,
+      classList: 'effects__preview--sepia',
+      metrick: ''},
+
+    {name: 'marvin',
+      filter: 'invert',
+      maxEffect: 100,
+      classList: 'effects__preview--marvin',
+      metrick: '%'},
+
+    {name: 'phobos',
+      filter: 'blur',
+      maxEffect: 5,
+      classList: 'effects__preview--phobos',
+      metrick: 'px'},
+
+    {name: 'heat',
+      filter: 'brightness',
+      maxEffect: 3,
+      classList: 'effects__preview--heat',
+      metrick: ''},
+  ];
+
+  // Ищем все необходимые перемееные: radio button, блок со шкалой, и изображение для применения фильтра
+  var effectRadioButton = document.querySelectorAll('.effects__radio');
+  var levelLine = document.querySelector('.effect-level__line');
+  var uploadPreview = document.querySelector('.img-upload__preview');
+
+
+  // функция которая при клике на radio button проверяет, что чекнуто и возвращает номер объекта из массива фильтров
+  var getFilters = function () {
+    var currentRadio = 'heat';
+    for (var i = 0; i < effectRadioButton.length; i++) {
+      if (effectRadioButton[i].checked === true) {
+        currentRadio = effectRadioButton[i].value;
+      }
+    }
+    for (var k = 0; k < EFFECTS.length; k++) {
+      if (currentRadio === EFFECTS[k].name) {
+        var numberFilter = k;
+      }
+    }
+    return numberFilter;
+  };
+
+  // При переключении фильтра, уровень эффекта должен сразу cбрасываться до начального состояния
+  var onEffectRadioButton = function () {
+    uploadPreview.style.filter = '';
+  };
+
+  // Функция расчета расчета степени эффекта, присвоение класса картинке, изменение значений в классе
+  var onEffectLevelLine = function (evt) {
+    var i = getFilters();
+    var coordsLevelLine = levelLine.getBoundingClientRect();
+    var leveLineWidth = coordsLevelLine.right - coordsLevelLine.left;
+    var valueEffectLevel = (evt.clientX - coordsLevelLine.left) / leveLineWidth * EFFECTS[i].maxEffect;
+    uploadPreview.style.filter = EFFECTS[i].filter + '(' + valueEffectLevel + EFFECTS[i].metrick + ')';
+
+  };
+
+  // Устанавливаем слушателей на radio button и pin
+  for (var k = 0; k < effectRadioButton.length; k++) {
+    effectRadioButton[k].addEventListener('click', onEffectRadioButton);
+  }
+  levelLine.addEventListener('mouseup', onEffectLevelLine);
+};
+
 // Запуск функций срипта
 var mockData = generateMockData();
 renderAll(mockData);
+showBigPictureModal();
+showUploadModal();
 
 
