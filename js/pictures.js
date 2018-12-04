@@ -218,8 +218,6 @@ var showUploadModal = function () {
     }
   };
 
-  //
-
   // Применение фиьтров
   var EFFECTS = [
     {name: 'none',
