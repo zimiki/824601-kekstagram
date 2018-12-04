@@ -187,7 +187,7 @@ var showBigPictureModal = function () {
 };
 
 
-/* !!!!!!!!!   С ЭТИМ Я НЕ РАЗОБРАЛАСЬ ЧТО ЗНАЧИТ СБРАСЫВАТЬ ЗНАЧЕНИЕ !!!!!
+/* !!!! этот вопрос не решен  С ЭТИМ Я НЕ РАЗОБРАЛАСЬ ЧТО ЗНАЧИТ СБРАСЫВАТЬ ЗНАЧЕНИЕ !!!!!
 При написании обработчиков, реагирующих на закрытие формы, обратите внимание на то, что при закрытии формы, дополнительно нужно
 сбрасывать значение поля выбора файла #upload-file. */
 
@@ -217,6 +217,8 @@ var showUploadModal = function () {
       closeModal();
     }
   };
+
+  //
 
   // Применение фиьтров
   var EFFECTS = [
@@ -298,25 +300,76 @@ var showUploadModal = function () {
     effectRadioButton[k].addEventListener('click', onEffectRadioButton);
   }
   levelLine.addEventListener('mouseup', onEffectLevelLine);
+
+
+  // БЛОК ВАЛИДАЦИИ ПОЛЯ ХЭШ-ТЕГОВ
+
+  var hashTagsInput = document.querySelector('.text__hashtags');
+  hashTagsInput.addEventListener('input', function (evt) {
+
+    // ?????? как разместить или вернуть чтобы работала отмена только тогда фокус находится в поле ввода хэш-тега, нажатие на Esc не должно приводить к закрытию формы редактирования изображения.
+    document.removeEventListener('keydown', onEscPress);
+    var tags = evt.target.value.split(' ');
+
+    // - перевожу значения в нижний регистр
+    function getTagsLowerCase() {
+      var tagsLowerCase = [];
+      for (var i = 0; i < tags.length; i++) {
+        tagsLowerCase[i] = tags[i].toLowerCase();
+      }
+      return tagsLowerCase;
+    }
+
+    // - получение массива имен с корректным началом
+    function getCorrectBegin() {
+      var correctBegin = [];
+      for (var i = 0; i < tags.length; i++) {
+        if (tags[i][0] === '#') {
+          correctBegin.push(tags[i]);
+        }
+      }
+      return correctBegin;
+    }
+
+    // - получение массивов имен с некорректной длинной
+    var longName = tags.filter(function (tags) {
+      return tags.length > 20;
+    });
+    var shortName = tags.filter(function (tags) {
+      return tags.length < 2;
+    });
+
+    // - получение массива с одинаковыми именами
+    function getUniqueName(arr) {
+      var obj = {};
+      for (var i = 0; i < arr.length; i++) {
+        var str = arr[i];
+        obj[str] = true;
+      }
+      return Object.keys(obj);
+    }
+
+    // - назначение условий валидности для поля ввода и создание подсказок об ошибках
+    if (longName.length > 0) {
+      hashTagsInput.setCustomValidity('Mаксимальная длина одного хэш-тега 20 символов, включая решётку');
+    } else if (tags.length > 5) {
+      hashTagsInput.setCustomValidity('Нельзя указать больше пяти хэш-тегов');
+    } else if (tags.length > getCorrectBegin().length) {
+      hashTagsInput.setCustomValidity('Хэш-тег должен начинается с символа # (решётка)');
+    } else if (shortName.length > 0) {
+      hashTagsInput.setCustomValidity('Хеш-тег не может состоять только из одной решётки');
+    } else if (tags.length > getUniqueName(getTagsLowerCase()).length) {
+      hashTagsInput.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды.Теги нечувствительны к регистру: #ХэшТег и #хэштег считаются одним и тем же тегом.');
+    } else {
+      hashTagsInput.setCustomValidity('');
+    }
+  });
 };
 
-
-// Функция валидации
-function getValidity() {
-  var form = document.querySelector('#upload-select-image');
-  var inputTags = document.querySelector('.text__hashtags').value;
-  form.addEventListener('submit', function () {
-    if (inputTags.length > 10) {
-      return false;
-    }
-    return true;
-  });
-}
 
 // Запуск функций срипта
 var mockData = generateMockData();
 renderAll(mockData);
 showBigPictureModal();
 showUploadModal();
-getValidity();
 
