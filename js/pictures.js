@@ -217,7 +217,7 @@ var showUploadModal = function () {
 
   // ограничение на закрытие при активных полях ввода
   var isFocused = function () {
-    var elementFocus = (document.activeElement === hashTagsInput);
+    var elementFocus = (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
     return elementFocus;
   };
 
