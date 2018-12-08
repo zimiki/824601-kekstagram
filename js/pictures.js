@@ -178,9 +178,17 @@ var showBigPictureModal = function () {
   closeBigPicture.addEventListener('click', function () {
     closeModal();
   });
+
+  // Вот это не работает
+  var inputElement = document.querySelector('.text__hashtags');
+  var isFocused = function () {
+    var elementFocus = (document.activeElement === inputElement);
+    return elementFocus;
+  };
+
   // -закрытие окна по Esc
   var onEscPress = function (evt) {
-    if (evt.keyCode === ESC_KEYCODE) {
+    if (!isFocused() && evt.keyCode === ESC_KEYCODE) {
       closeModal();
     }
   };
@@ -211,6 +219,8 @@ var showUploadModal = function () {
   closeFiltersSetting.addEventListener('click', function () {
     closeModal();
   });
+
+
   // -закрытие окна по Esc
   var onEscPress = function (evt) {
     if (evt.keyCode === ESC_KEYCODE) {
@@ -304,10 +314,20 @@ var showUploadModal = function () {
 
   var hashTagsInput = document.querySelector('.text__hashtags');
   hashTagsInput.addEventListener('input', function (evt) {
-
-    // ?????? как разместить или вернуть чтобы работала отмена только тогда фокус находится в поле ввода хэш-тега, нажатие на Esc не должно приводить к закрытию формы редактирования изображения.
-    document.removeEventListener('keydown', onEscPress);
     var tags = evt.target.value.split(' ');
+
+
+    // - получение массивов имен с некорректной длинной
+    var normalName = tags.filter(function (tag) {
+      return tag.length > 0;
+    });
+    var shortName = tags.filter(function (tag) {
+      return tag.length === 1;
+    });
+    var longName = tags.filter(function (tag) {
+      return tag.length > 20;
+    });
+
 
     // - перевожу значения в нижний регистр
     function getTagsLowerCase() {
@@ -329,14 +349,6 @@ var showUploadModal = function () {
       return correctBegin;
     }
 
-    // - получение массивов имен с некорректной длинной
-    var longName = tags.filter(function (tags) {
-      return tags.length > 20;
-    });
-    var shortName = tags.filter(function (tags) {
-      return tags.length < 2;
-    });
-
     // - получение массива с одинаковыми именами
     function getUniqueName(arr) {
       var obj = {};
@@ -347,13 +359,18 @@ var showUploadModal = function () {
       return Object.keys(obj);
     }
 
+
     // - назначение условий валидности для поля ввода и создание подсказок об ошибках
     if (longName.length > 0) {
       hashTagsInput.setCustomValidity('Mаксимальная длина одного хэш-тега 20 символов, включая решётку');
     } else if (tags.length > 5) {
       hashTagsInput.setCustomValidity('Нельзя указать больше пяти хэш-тегов');
-    } else if (tags.length > getCorrectBegin().length) {
+    } else if (normalName.length > getCorrectBegin().length) {
       hashTagsInput.setCustomValidity('Хэш-тег должен начинается с символа # (решётка)');
+
+      /* } else if ( ) {
+      hashTagsInput.setCustomValidity('Хеш-тег не может состоять только из одной решётки');*/
+
     } else if (shortName.length > 0) {
       hashTagsInput.setCustomValidity('Хеш-тег не может состоять только из одной решётки');
     } else if (tags.length > getUniqueName(getTagsLowerCase()).length) {
