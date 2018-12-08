@@ -179,16 +179,10 @@ var showBigPictureModal = function () {
     closeModal();
   });
 
-  // Вот это не работает
-  var inputElement = document.querySelector('.text__hashtags');
-  var isFocused = function () {
-    var elementFocus = (document.activeElement === inputElement);
-    return elementFocus;
-  };
 
   // -закрытие окна по Esc
   var onEscPress = function (evt) {
-    if (!isFocused() && evt.keyCode === ESC_KEYCODE) {
+    if (evt.keyCode === ESC_KEYCODE) {
       closeModal();
     }
   };
@@ -221,9 +215,15 @@ var showUploadModal = function () {
   });
 
 
+  // ограничение на закрытие при активных полях ввода
+  var isFocused = function () {
+    var elementFocus = (document.activeElement === hashTagsInput);
+    return elementFocus;
+  };
+
   // -закрытие окна по Esc
   var onEscPress = function (evt) {
-    if (evt.keyCode === ESC_KEYCODE) {
+    if (!isFocused() && evt.keyCode === ESC_KEYCODE) {
       closeModal();
     }
   };
@@ -359,6 +359,7 @@ var showUploadModal = function () {
       return Object.keys(obj);
     }
 
+    var sуmbolTags = evt.target.value.split('#');
 
     // - назначение условий валидности для поля ввода и создание подсказок об ошибках
     if (longName.length > 0) {
@@ -367,10 +368,8 @@ var showUploadModal = function () {
       hashTagsInput.setCustomValidity('Нельзя указать больше пяти хэш-тегов');
     } else if (normalName.length > getCorrectBegin().length) {
       hashTagsInput.setCustomValidity('Хэш-тег должен начинается с символа # (решётка)');
-
-      /* } else if ( ) {
-      hashTagsInput.setCustomValidity('Хеш-тег не может состоять только из одной решётки');*/
-
+    } else if ((sуmbolTags.length - 1) > getCorrectBegin().length) {
+      hashTagsInput.setCustomValidity('Хэш-теги разделяются пробелами');
     } else if (shortName.length > 0) {
       hashTagsInput.setCustomValidity('Хеш-тег не может состоять только из одной решётки');
     } else if (tags.length > getUniqueName(getTagsLowerCase()).length) {
