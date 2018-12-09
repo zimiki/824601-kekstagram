@@ -270,6 +270,8 @@ var showUploadModal = function () {
   var effectRadioButton = document.querySelectorAll('.effects__radio');
   var levelLine = document.querySelector('.effect-level__line');
   var uploadPreview = document.querySelector('.img-upload__preview');
+  var effectHandle = document.querySelector('.effect-level__pin');
+  var effectLineDepth = document.querySelector('.effect-level__depth');
 
 
   // функция которая при клике на radio button проверяет, что чекнуто и возвращает номер объекта из массива фильтров
@@ -288,30 +290,63 @@ var showUploadModal = function () {
     return numberFilter;
   };
 
-  // При переключении фильтра, уровень эффекта должен сразу cбрасываться до начального состояния
+  // устанавливаем слушателей на radio button, при переключении сброс до начального состояния
   var onEffectRadioButton = function () {
     uploadPreview.style.filter = '';
   };
-
-  // Функция расчета расчета степени эффекта, присвоение класса картинке, изменение значений в классе
-  var onEffectLevelLine = function (evt) {
-    var i = getFilters();
-    var coordsLevelLine = levelLine.getBoundingClientRect();
-    var leveLineWidth = coordsLevelLine.right - coordsLevelLine.left;
-    var valueEffectLevel = (evt.clientX - coordsLevelLine.left) / leveLineWidth * EFFECTS[i].maxEffect;
-    uploadPreview.style.filter = EFFECTS[i].filter + '(' + valueEffectLevel + EFFECTS[i].metrick + ')';
-
-  };
-
-  // Устанавливаем слушателей на radio button и pin
   for (var k = 0; k < effectRadioButton.length; k++) {
     effectRadioButton[k].addEventListener('click', onEffectRadioButton);
   }
-  levelLine.addEventListener('mouseup', onEffectLevelLine);
+
+
+  // Пользовательская настройка фильтра изображения
+  effectHandle.addEventListener('mousedown', function (evt) {
+    evt.preventDefault();
+    var startCoordsX = evt.clientX;
+    var coordsLimits = levelLine.getBoundingClientRect();
+
+    // При передвижении пина отрисовка элементов с учетом ограничений
+    var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+
+      if (moveEvt.clientX < coordsLimits.left) {
+        effectHandle.style.left = '0px';
+        effectLineDepth.style.width = '0px';
+        startCoordsX = coordsLimits.left;
+      } else if (moveEvt.clientX > coordsLimits.right) {
+        effectHandle.style.left = coordsLimits.width + 'px';
+        effectLineDepth.style.width = coordsLimits.width + 'px';
+        startCoordsX = coordsLimits.right;
+      } else {
+        var shiftX = startCoordsX - moveEvt.clientX;
+        effectHandle.style.left = (effectHandle.offsetLeft - shiftX) + 'px';
+        effectLineDepth.style.width = (effectLineDepth.offsetWidth - shiftX) + 'px';
+        startCoordsX = moveEvt.clientX;
+      }
+    };
+
+    // При отпускании пина расчет значения фильтра
+    var onMouseUp = function (evt) {
+      var i = getFilters();
+      var leveLineWidth = coordsLimits.right - coordsLimits.left;
+      var valueEffectLevel = (evt.clientX - coordsLimits.left) / leveLineWidth;
+      if (evt.clientX < coordsLimits.left) {
+        valueEffectLevel = 0;
+      }
+      if (evt.clientX > coordsLimits.right) {
+        valueEffectLevel = 1;
+      }
+      uploadPreview.style.filter = EFFECTS[i].filter + '(' + valueEffectLevel * EFFECTS[i].maxEffect + EFFECTS[i].metrick + ')';
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
 
 
   // БЛОК ВАЛИДАЦИИ ПОЛЯ ХЭШ-ТЕГОВ
-
   var hashTagsInput = document.querySelector('.text__hashtags');
   hashTagsInput.addEventListener('input', function (evt) {
     var tags = evt.target.value.split(' ');
