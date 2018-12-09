@@ -287,18 +287,27 @@ var showUploadModal = function () {
 
   // Ищем все необходимые перемееные: radio button, блок со шкалой, и изображение для применения фильтра
   var effectRadioButton = document.querySelectorAll('.effects__radio');
-  var levelLine = document.querySelector('.effect-level__line');
-
-  var effectHandle = document.querySelector('.effect-level__pin');
+  var sliderLine = document.querySelector('.effect-level__line');
+  var slider = document.querySelector('.img-upload__effect-level');
+  var effectInputValue = document.querySelector('.effect-level__value');
+  var sliderHandle = document.querySelector('.effect-level__pin');
   var effectLineDepth = document.querySelector('.effect-level__depth');
   var currentRadio = 'heat';
 
 
   // при переключении сброс до начального состояния
   var changeFilter = function () {
+    sliderHandle.style.left = '';
+    effectLineDepth.style.width = '';
     uploadPreview.classList = '';
     uploadPreview.style.filter = '';
+    effectInputValue.setAttribute('value', 20);
+    slider.classList.remove('visually-hidden');
     getFilters();
+    if (getFilters() === 0) {
+      slider.classList.add('visually-hidden')
+      ;
+    }
   };
 
   // устанавливает на все radio button обработчик клика
@@ -308,26 +317,25 @@ var showUploadModal = function () {
 
 
   // Пользовательская настройка фильтра изображения
-  effectHandle.addEventListener('mousedown', function (evt) {
+  sliderHandle.addEventListener('mousedown', function (evt) {
     evt.preventDefault();
     var startCoordsX = evt.clientX;
-    var coordsLimits = levelLine.getBoundingClientRect();
+    var coordsLimits = sliderLine.getBoundingClientRect();
 
     // При передвижении пина отрисовка элементов с учетом ограничений
     var onMouseMove = function (moveEvt) {
       moveEvt.preventDefault();
-
       if (moveEvt.clientX < coordsLimits.left) {
-        effectHandle.style.left = '0px';
+        sliderHandle.style.left = '0px';
         effectLineDepth.style.width = '0px';
         startCoordsX = coordsLimits.left;
       } else if (moveEvt.clientX > coordsLimits.right) {
-        effectHandle.style.left = coordsLimits.width + 'px';
+        sliderHandle.style.left = coordsLimits.width + 'px';
         effectLineDepth.style.width = coordsLimits.width + 'px';
         startCoordsX = coordsLimits.right;
       } else {
         var shiftX = startCoordsX - moveEvt.clientX;
-        effectHandle.style.left = (effectHandle.offsetLeft - shiftX) + 'px';
+        sliderHandle.style.left = (sliderHandle.offsetLeft - shiftX) + 'px';
         effectLineDepth.style.width = (effectLineDepth.offsetWidth - shiftX) + 'px';
         startCoordsX = moveEvt.clientX;
       }
@@ -335,11 +343,6 @@ var showUploadModal = function () {
 
     // При отпускании пина расчет значения фильтра
     var onMouseUp = function (upEvt) {
-      var elv = document.querySelector('.effect-level__value');
-      console.log(elv);
-      elv.value = '2';
-      console.log(elv.value);
-
       var i = getFilters();
       var leveLineWidth = coordsLimits.right - coordsLimits.left;
       var valueEffectLevel = (upEvt.clientX - coordsLimits.left) / leveLineWidth;
@@ -349,8 +352,9 @@ var showUploadModal = function () {
       if (upEvt.clientX > coordsLimits.right) {
         valueEffectLevel = 1;
       }
-      // uploadPreview.style.filter = EFFECTS[i].filter + '(' + valueEffectLevel * EFFECTS[i].maxEffect + EFFECTS[i].metrick + ')';
-      elv.value = valueEffectLevel * EFFECTS[i].maxEffect + EFFECTS[i].metrick;
+      effectInputValue.value = valueEffectLevel * EFFECTS[i].maxEffect;
+      effectInputValue.setAttribute('value', effectInputValue.value);
+      uploadPreview.style.filter = EFFECTS[i].filter + '(' + effectInputValue.value + EFFECTS[i].metrick + ')';
 
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
