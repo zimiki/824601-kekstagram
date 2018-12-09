@@ -198,10 +198,29 @@ var showUploadModal = function () {
   var filtersSetting = document.querySelector('.img-upload__overlay');
   var openUploadFile = document.querySelector('#upload-file');
   var closeFiltersSetting = document.querySelector('#upload-cancel');
+  var uploadPreview = document.querySelector('.img-upload__preview img');
+
+
+  // функция которая проверяет, что какой radio button и  возвращает  cоответвующий номер объекта из массива фильтров
+  var getFilters = function () {
+    for (var i = 0; i < effectRadioButton.length; i++) {
+      if (effectRadioButton[i].checked === true) {
+        currentRadio = effectRadioButton[i].value;
+      }
+    }
+    for (var k = 0; k < EFFECTS.length; k++) {
+      if (currentRadio === EFFECTS[k].name) {
+        uploadPreview.classList.add(EFFECTS[k].classList);
+        var numberFilter = k;
+      }
+    }
+    return numberFilter;
+  };
 
   // - открытие большой фото-фильтров
   openUploadFile.addEventListener('change', function () {
     filtersSetting .classList.remove('hidden');
+    getFilters();
     document.addEventListener('keydown', onEscPress);
   });
   // описание как закрывается окно фото-фильтров
@@ -269,33 +288,22 @@ var showUploadModal = function () {
   // Ищем все необходимые перемееные: radio button, блок со шкалой, и изображение для применения фильтра
   var effectRadioButton = document.querySelectorAll('.effects__radio');
   var levelLine = document.querySelector('.effect-level__line');
-  var uploadPreview = document.querySelector('.img-upload__preview');
+
   var effectHandle = document.querySelector('.effect-level__pin');
   var effectLineDepth = document.querySelector('.effect-level__depth');
+  var currentRadio = 'heat';
 
 
-  // функция которая при клике на radio button проверяет, что чекнуто и возвращает номер объекта из массива фильтров
-  var getFilters = function () {
-    var currentRadio = 'heat';
-    for (var i = 0; i < effectRadioButton.length; i++) {
-      if (effectRadioButton[i].checked === true) {
-        currentRadio = effectRadioButton[i].value;
-      }
-    }
-    for (var k = 0; k < EFFECTS.length; k++) {
-      if (currentRadio === EFFECTS[k].name) {
-        var numberFilter = k;
-      }
-    }
-    return numberFilter;
-  };
-
-  // устанавливаем слушателей на radio button, при переключении сброс до начального состояния
-  var onEffectRadioButton = function () {
+  // при переключении сброс до начального состояния
+  var changeFilter = function () {
+    uploadPreview.classList = '';
     uploadPreview.style.filter = '';
+    getFilters();
   };
+
+  // устанавливает на все radio button обработчик клика
   for (var k = 0; k < effectRadioButton.length; k++) {
-    effectRadioButton[k].addEventListener('click', onEffectRadioButton);
+    effectRadioButton[k].addEventListener('click', changeFilter);
   }
 
 
@@ -326,17 +334,24 @@ var showUploadModal = function () {
     };
 
     // При отпускании пина расчет значения фильтра
-    var onMouseUp = function (evt) {
+    var onMouseUp = function (upEvt) {
+      var elv = document.querySelector('.effect-level__value');
+      console.log(elv);
+      elv.value = '2';
+      console.log(elv.value);
+
       var i = getFilters();
       var leveLineWidth = coordsLimits.right - coordsLimits.left;
-      var valueEffectLevel = (evt.clientX - coordsLimits.left) / leveLineWidth;
-      if (evt.clientX < coordsLimits.left) {
+      var valueEffectLevel = (upEvt.clientX - coordsLimits.left) / leveLineWidth;
+      if (upEvt.clientX < coordsLimits.left) {
         valueEffectLevel = 0;
       }
-      if (evt.clientX > coordsLimits.right) {
+      if (upEvt.clientX > coordsLimits.right) {
         valueEffectLevel = 1;
       }
-      uploadPreview.style.filter = EFFECTS[i].filter + '(' + valueEffectLevel * EFFECTS[i].maxEffect + EFFECTS[i].metrick + ')';
+      // uploadPreview.style.filter = EFFECTS[i].filter + '(' + valueEffectLevel * EFFECTS[i].maxEffect + EFFECTS[i].metrick + ')';
+      elv.value = valueEffectLevel * EFFECTS[i].maxEffect + EFFECTS[i].metrick;
+
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
     };
