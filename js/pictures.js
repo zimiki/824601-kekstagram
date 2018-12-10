@@ -236,7 +236,7 @@ var showUploadModal = function () {
 
   // ограничение на закрытие при активных полях ввода
   var isFocused = function () {
-    var elementFocus = (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+    var elementFocus = document.activeElement === hashTagsInput || document.activeElement === descriptionText;
     return elementFocus;
   };
 
@@ -295,7 +295,7 @@ var showUploadModal = function () {
   var currentRadio = 'heat';
 
 
-  // при переключении сброс до начального состояния
+  // при переключении radio button - сброс до начального состояния
   var changeFilter = function () {
     sliderHandle.style.left = '';
     effectLineDepth.style.width = '';
@@ -322,6 +322,23 @@ var showUploadModal = function () {
     var startCoordsX = evt.clientX;
     var coordsLimits = sliderLine.getBoundingClientRect();
 
+    // функция отображение изменений в просмотре
+    var changePreviewStyle = function (changeEvt) {
+      var i = getFilters();
+      var leveLineWidth = coordsLimits.right - coordsLimits.left;
+      var valueEffectLevel = (changeEvt.clientX - coordsLimits.left) / leveLineWidth;
+      if (changeEvt.clientX < coordsLimits.left) {
+        valueEffectLevel = 0;
+      }
+      if (changeEvt.clientX > coordsLimits.right) {
+        valueEffectLevel = 1;
+      }
+      effectInputValue.value = valueEffectLevel * EFFECTS[i].maxEffect;
+      effectInputValue.setAttribute('value', effectInputValue.value);
+      uploadPreview.style.filter = EFFECTS[i].filter + '(' + effectInputValue.value + EFFECTS[i].metrick + ')';
+    };
+
+
     // При передвижении пина отрисовка элементов с учетом ограничений
     var onMouseMove = function (moveEvt) {
       moveEvt.preventDefault();
@@ -330,7 +347,7 @@ var showUploadModal = function () {
         effectLineDepth.style.width = '0px';
         startCoordsX = coordsLimits.left;
       } else if (moveEvt.clientX > coordsLimits.right) {
-        sliderHandle.style.left = coordsLimits.width + 'px';
+        sliderHandle.style.left = (coordsLimits.width - sliderHandle.offsetWidth / 2) + 'px';
         effectLineDepth.style.width = coordsLimits.width + 'px';
         startCoordsX = coordsLimits.right;
       } else {
@@ -339,23 +356,13 @@ var showUploadModal = function () {
         effectLineDepth.style.width = (effectLineDepth.offsetWidth - shiftX) + 'px';
         startCoordsX = moveEvt.clientX;
       }
+      changePreviewStyle(moveEvt);
+
     };
 
     // При отпускании пина расчет значения фильтра
     var onMouseUp = function (upEvt) {
-      var i = getFilters();
-      var leveLineWidth = coordsLimits.right - coordsLimits.left;
-      var valueEffectLevel = (upEvt.clientX - coordsLimits.left) / leveLineWidth;
-      if (upEvt.clientX < coordsLimits.left) {
-        valueEffectLevel = 0;
-      }
-      if (upEvt.clientX > coordsLimits.right) {
-        valueEffectLevel = 1;
-      }
-      effectInputValue.value = valueEffectLevel * EFFECTS[i].maxEffect;
-      effectInputValue.setAttribute('value', effectInputValue.value);
-      uploadPreview.style.filter = EFFECTS[i].filter + '(' + effectInputValue.value + EFFECTS[i].metrick + ')';
-
+      changePreviewStyle(upEvt);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
     };
@@ -367,6 +374,7 @@ var showUploadModal = function () {
 
   // БЛОК ВАЛИДАЦИИ ПОЛЯ ХЭШ-ТЕГОВ
   var hashTagsInput = document.querySelector('.text__hashtags');
+  var descriptionText = document.querySelector('.text__description');
   hashTagsInput.addEventListener('input', function (evt) {
     var tags = evt.target.value.split(' ');
 
@@ -412,7 +420,7 @@ var showUploadModal = function () {
       }
       return Object.keys(obj);
     }
-
+    // - получение количества заков #
     var sуmbolTags = evt.target.value.split('#');
 
     // - назначение условий валидности для поля ввода и создание подсказок об ошибках
@@ -427,7 +435,7 @@ var showUploadModal = function () {
     } else if (shortName.length > 0) {
       hashTagsInput.setCustomValidity('Хеш-тег не может состоять только из одной решётки');
     } else if (tags.length > getUniqueName(getTagsLowerCase()).length) {
-      hashTagsInput.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды.Теги нечувствительны к регистру: #ХэшТег и #хэштег считаются одним и тем же тегом.');
+      hashTagsInput.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
     } else {
       hashTagsInput.setCustomValidity('');
     }
