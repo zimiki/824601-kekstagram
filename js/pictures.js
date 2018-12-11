@@ -195,32 +195,17 @@ var showBigPictureModal = function () {
 
 // Блок для описания сценария popup фильтров фотографий
 var showUploadModal = function () {
+  // переменные для открытия/закрытия окна
   var filtersSetting = document.querySelector('.img-upload__overlay');
   var openUploadFile = document.querySelector('#upload-file');
   var closeFiltersSetting = document.querySelector('#upload-cancel');
   var uploadPreview = document.querySelector('.img-upload__preview img');
 
-
-  // функция которая проверяет, что какой radio button и  возвращает  cоответвующий номер объекта из массива фильтров
-  var getFilters = function () {
-    for (var i = 0; i < effectRadioButton.length; i++) {
-      if (effectRadioButton[i].checked === true) {
-        currentRadio = effectRadioButton[i].value;
-      }
-    }
-    for (var k = 0; k < EFFECTS.length; k++) {
-      if (currentRadio === EFFECTS[k].name) {
-        uploadPreview.classList.add(EFFECTS[k].classList);
-        var numberFilter = k;
-      }
-    }
-    return numberFilter;
-  };
-
+  // БЛОК управления закрытием открытием
   // - открытие большой фото-фильтров
   openUploadFile.addEventListener('change', function () {
     filtersSetting .classList.remove('hidden');
-    getFilters();
+    setStartPositionSlider();
     document.addEventListener('keydown', onEscPress);
   });
   // описание как закрывается окно фото-фильтров
@@ -232,14 +217,11 @@ var showUploadModal = function () {
   closeFiltersSetting.addEventListener('click', function () {
     closeModal();
   });
-
-
   // ограничение на закрытие при активных полях ввода
   var isFocused = function () {
-    var elementFocus = (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+    var elementFocus = document.activeElement === hashTagsInput || document.activeElement === descriptionText;
     return elementFocus;
   };
-
   // -закрытие окна по Esc
   var onEscPress = function (evt) {
     if (!isFocused() && evt.keyCode === ESC_KEYCODE) {
@@ -247,7 +229,6 @@ var showUploadModal = function () {
     }
   };
 
-  // Применение фиьтров
   var EFFECTS = [
     {name: 'none',
       filter: 'none',
@@ -292,22 +273,43 @@ var showUploadModal = function () {
   var effectInputValue = document.querySelector('.effect-level__value');
   var sliderHandle = document.querySelector('.effect-level__pin');
   var effectLineDepth = document.querySelector('.effect-level__depth');
-  var currentRadio = 'heat';
+
+  // Функция которая проверяет, что какой radio button и  возвращает  cоответвующий номер объекта из массива фильтров
+  var getNumberFilters = function () {
+    var currentRadio = 'heat';
+    for (var i = 0; i < effectRadioButton.length; i++) {
+      if (effectRadioButton[i].checked === true) {
+        currentRadio = effectRadioButton[i].value;
+      }
+    }
+    for (var k = 0; k < EFFECTS.length; k++) {
+      if (currentRadio === EFFECTS[k].name) {
+        var numberFilter = k;
+      }
+    }
+    return numberFilter;
+  };
+
+  // Установка исхдного отображения окна с эффектами
+  var setStartPositionSlider = function () {
+    var i = getNumberFilters();
+    if (getNumberFilters() === 0) {
+      slider.classList.add('visually-hidden');
+    }
+    var cLimits = sliderLine.getBoundingClientRect();
+    sliderHandle.style.left = (cLimits.width - sliderHandle.offsetWidth / 2) + 'px';
+    effectLineDepth.style.width = cLimits.width + 'px';
+    effectInputValue.setAttribute('value', EFFECTS[i].maxEffect);
+    uploadPreview.classList.add(EFFECTS[i].classList);
+  };
 
 
-  // при переключении сброс до начального состояния
+  // Переключении radio button - сброс до начального состояния
   var changeFilter = function () {
-    sliderHandle.style.left = '';
-    effectLineDepth.style.width = '';
     uploadPreview.classList = '';
     uploadPreview.style.filter = '';
-    effectInputValue.setAttribute('value', 20);
     slider.classList.remove('visually-hidden');
-    getFilters();
-    if (getFilters() === 0) {
-      slider.classList.add('visually-hidden')
-      ;
-    }
+    setStartPositionSlider();
   };
 
   // устанавливает на все radio button обработчик клика
@@ -322,6 +324,24 @@ var showUploadModal = function () {
     var startCoordsX = evt.clientX;
     var coordsLimits = sliderLine.getBoundingClientRect();
 
+
+    // функция отображение изменений в просмотре
+    var changePreviewStyle = function (changeEvt) {
+      var i = getNumberFilters();
+      var leveLineWidth = coordsLimits.right - coordsLimits.left;
+      var valueEffectLevel = (changeEvt.clientX - coordsLimits.left) / leveLineWidth;
+      if (changeEvt.clientX < coordsLimits.left) {
+        valueEffectLevel = 0;
+      }
+      if (changeEvt.clientX > coordsLimits.right) {
+        valueEffectLevel = 1;
+      }
+      effectInputValue.value = valueEffectLevel * EFFECTS[i].maxEffect;
+      effectInputValue.setAttribute('value', effectInputValue.value);
+      uploadPreview.style.filter = EFFECTS[i].filter + '(' + effectInputValue.value + EFFECTS[i].metrick + ')';
+    };
+
+
     // При передвижении пина отрисовка элементов с учетом ограничений
     var onMouseMove = function (moveEvt) {
       moveEvt.preventDefault();
@@ -330,7 +350,7 @@ var showUploadModal = function () {
         effectLineDepth.style.width = '0px';
         startCoordsX = coordsLimits.left;
       } else if (moveEvt.clientX > coordsLimits.right) {
-        sliderHandle.style.left = coordsLimits.width + 'px';
+        sliderHandle.style.left = (coordsLimits.width - sliderHandle.offsetWidth / 2) + 'px';
         effectLineDepth.style.width = coordsLimits.width + 'px';
         startCoordsX = coordsLimits.right;
       } else {
@@ -339,23 +359,12 @@ var showUploadModal = function () {
         effectLineDepth.style.width = (effectLineDepth.offsetWidth - shiftX) + 'px';
         startCoordsX = moveEvt.clientX;
       }
+      changePreviewStyle(moveEvt);
     };
 
     // При отпускании пина расчет значения фильтра
     var onMouseUp = function (upEvt) {
-      var i = getFilters();
-      var leveLineWidth = coordsLimits.right - coordsLimits.left;
-      var valueEffectLevel = (upEvt.clientX - coordsLimits.left) / leveLineWidth;
-      if (upEvt.clientX < coordsLimits.left) {
-        valueEffectLevel = 0;
-      }
-      if (upEvt.clientX > coordsLimits.right) {
-        valueEffectLevel = 1;
-      }
-      effectInputValue.value = valueEffectLevel * EFFECTS[i].maxEffect;
-      effectInputValue.setAttribute('value', effectInputValue.value);
-      uploadPreview.style.filter = EFFECTS[i].filter + '(' + effectInputValue.value + EFFECTS[i].metrick + ')';
-
+      changePreviewStyle(upEvt);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
     };
@@ -367,6 +376,7 @@ var showUploadModal = function () {
 
   // БЛОК ВАЛИДАЦИИ ПОЛЯ ХЭШ-ТЕГОВ
   var hashTagsInput = document.querySelector('.text__hashtags');
+  var descriptionText = document.querySelector('.text__description');
   hashTagsInput.addEventListener('input', function (evt) {
     var tags = evt.target.value.split(' ');
 
@@ -412,7 +422,7 @@ var showUploadModal = function () {
       }
       return Object.keys(obj);
     }
-
+    // - получение количества заков #
     var sуmbolTags = evt.target.value.split('#');
 
     // - назначение условий валидности для поля ввода и создание подсказок об ошибках
@@ -427,7 +437,7 @@ var showUploadModal = function () {
     } else if (shortName.length > 0) {
       hashTagsInput.setCustomValidity('Хеш-тег не может состоять только из одной решётки');
     } else if (tags.length > getUniqueName(getTagsLowerCase()).length) {
-      hashTagsInput.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды.Теги нечувствительны к регистру: #ХэшТег и #хэштег считаются одним и тем же тегом.');
+      hashTagsInput.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
     } else {
       hashTagsInput.setCustomValidity('');
     }
