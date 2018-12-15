@@ -9,6 +9,7 @@
   var filtersSetting = document.querySelector('.img-upload__overlay');
   var openUploadFile = document.querySelector('#upload-file');
   var closeFiltersSetting = document.querySelector('#upload-cancel');
+  var uploadPreview = document.querySelector('.img-upload__preview img');
 
   var onPopupEscPress = function (evt) {
     if (!isFocused() && window.ulil.onEscPress(evt, closeModal)) {
@@ -86,7 +87,7 @@
   ];
 
   // Ищем все необходимые перемееные: radio button, блок со шкалой, и изображение для применения фильтра
-  var uploadPreview = document.querySelector('.img-upload__preview img');
+  // Ищем все необходимые перемееные: radio button, блок со шкалой, и изображение для применения фильтра
   var effectRadioButton = document.querySelectorAll('.effects__radio');
   var sliderLine = document.querySelector('.effect-level__line');
   var slider = document.querySelector('.img-upload__effect-level');
@@ -110,7 +111,7 @@
     return numberFilter;
   };
 
-  // Установка исходного отображения окна с эффектами
+  // Установка исхдного отображения окна с эффектами
   var setStartPositionSlider = function () {
     var i = getNumberFilters();
     if (getNumberFilters() === 0) {
@@ -137,16 +138,61 @@
     effectRadioButton[k].addEventListener('click', changeFilter);
   }
 
-  // функция отображение изменений в просмотре
-  var changePreviewStyle = function () {
-    var i = getNumberFilters();
-    var valueEffectLevel = window.slider(sliderLine, sliderHandle, effectLineDepth);
-    // Как сюда вернуть значение я не знаю
-    effectInputValue.value = valueEffectLevel * EFFECTS[i].maxEffect;
-    effectInputValue.setAttribute('value', effectInputValue.value);
-    uploadPreview.style.filter = EFFECTS[i].filter + '(' + effectInputValue.value + EFFECTS[i].metrick + ')';
-  };
-  changePreviewStyle();
+
+  // Пользовательская настройка фильтра изображения
+  sliderHandle.addEventListener('mousedown', function (evt) {
+    evt.preventDefault();
+    var startCoordsX = evt.clientX;
+    var coordsLimits = sliderLine.getBoundingClientRect();
+
+
+    // функция отображение изменений в просмотре
+    var changePreviewStyle = function (changeEvt) {
+      var i = getNumberFilters();
+      var leveLineWidth = coordsLimits.right - coordsLimits.left;
+      var valueEffectLevel = (changeEvt.clientX - coordsLimits.left) / leveLineWidth;
+      if (changeEvt.clientX < coordsLimits.left) {
+        valueEffectLevel = 0;
+      }
+      if (changeEvt.clientX > coordsLimits.right) {
+        valueEffectLevel = 1;
+      }
+      effectInputValue.value = valueEffectLevel * EFFECTS[i].maxEffect;
+      effectInputValue.setAttribute('value', effectInputValue.value);
+      uploadPreview.style.filter = EFFECTS[i].filter + '(' + effectInputValue.value + EFFECTS[i].metrick + ')';
+    };
+
+    // При передвижении пина отрисовка элементов с учетом ограничений
+    var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+      if (moveEvt.clientX < coordsLimits.left) {
+        sliderHandle.style.left = '0px';
+        effectLineDepth.style.width = '0px';
+        startCoordsX = coordsLimits.left;
+      } else if (moveEvt.clientX > coordsLimits.right) {
+        sliderHandle.style.left = (coordsLimits.width - sliderHandle.offsetWidth / 2) + 'px';
+        effectLineDepth.style.width = coordsLimits.width + 'px';
+        startCoordsX = coordsLimits.right;
+      } else {
+        var shiftX = startCoordsX - moveEvt.clientX;
+        sliderHandle.style.left = (sliderHandle.offsetLeft - shiftX) + 'px';
+        effectLineDepth.style.width = (effectLineDepth.offsetWidth - shiftX) + 'px';
+        startCoordsX = moveEvt.clientX;
+      }
+      changePreviewStyle(moveEvt);
+    };
+
+    // При отпускании пина расчет значения фильтра
+    var onMouseUp = function (upEvt) {
+      changePreviewStyle(upEvt);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+
 
 })();
 
