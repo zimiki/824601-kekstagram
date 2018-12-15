@@ -195,13 +195,17 @@ var showBigPictureModal = function () {
 
 // Блок для описания сценария popup фильтров фотографий
 var showUploadModal = function () {
+  // переменные для открытия/закрытия окна
   var filtersSetting = document.querySelector('.img-upload__overlay');
   var openUploadFile = document.querySelector('#upload-file');
   var closeFiltersSetting = document.querySelector('#upload-cancel');
+  var uploadPreview = document.querySelector('.img-upload__preview img');
 
+  // БЛОК управления закрытием открытием
   // - открытие большой фото-фильтров
   openUploadFile.addEventListener('change', function () {
     filtersSetting .classList.remove('hidden');
+    setStartPositionSlider();
     document.addEventListener('keydown', onEscPress);
   });
   // описание как закрывается окно фото-фильтров
@@ -213,14 +217,11 @@ var showUploadModal = function () {
   closeFiltersSetting.addEventListener('click', function () {
     closeModal();
   });
-
-
   // ограничение на закрытие при активных полях ввода
   var isFocused = function () {
-    var elementFocus = (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+    var elementFocus = document.activeElement === hashTagsInput || document.activeElement === descriptionText;
     return elementFocus;
   };
-
   // -закрытие окна по Esc
   var onEscPress = function (evt) {
     if (!isFocused() && evt.keyCode === ESC_KEYCODE) {
@@ -228,7 +229,6 @@ var showUploadModal = function () {
     }
   };
 
-  // Применение фиьтров
   var EFFECTS = [
     {name: 'none',
       filter: 'none',
@@ -268,12 +268,14 @@ var showUploadModal = function () {
 
   // Ищем все необходимые перемееные: radio button, блок со шкалой, и изображение для применения фильтра
   var effectRadioButton = document.querySelectorAll('.effects__radio');
-  var levelLine = document.querySelector('.effect-level__line');
-  var uploadPreview = document.querySelector('.img-upload__preview');
+  var sliderLine = document.querySelector('.effect-level__line');
+  var slider = document.querySelector('.img-upload__effect-level');
+  var effectInputValue = document.querySelector('.effect-level__value');
+  var sliderHandle = document.querySelector('.effect-level__pin');
+  var effectLineDepth = document.querySelector('.effect-level__depth');
 
-
-  // функция которая при клике на radio button проверяет, что чекнуто и возвращает номер объекта из массива фильтров
-  var getFilters = function () {
+  // Функция которая проверяет, что какой radio button и  возвращает  cоответвующий номер объекта из массива фильтров
+  var getNumberFilters = function () {
     var currentRadio = 'heat';
     for (var i = 0; i < effectRadioButton.length; i++) {
       if (effectRadioButton[i].checked === true) {
@@ -288,31 +290,93 @@ var showUploadModal = function () {
     return numberFilter;
   };
 
-  // При переключении фильтра, уровень эффекта должен сразу cбрасываться до начального состояния
-  var onEffectRadioButton = function () {
+  // Установка исхдного отображения окна с эффектами
+  var setStartPositionSlider = function () {
+    var i = getNumberFilters();
+    if (getNumberFilters() === 0) {
+      slider.classList.add('visually-hidden');
+    }
+    var cLimits = sliderLine.getBoundingClientRect();
+    sliderHandle.style.left = (cLimits.width - sliderHandle.offsetWidth / 2) + 'px';
+    effectLineDepth.style.width = cLimits.width + 'px';
+    effectInputValue.setAttribute('value', EFFECTS[i].maxEffect);
+    uploadPreview.classList.add(EFFECTS[i].classList);
+  };
+
+
+  // Переключении radio button - сброс до начального состояния
+  var changeFilter = function () {
+    uploadPreview.classList = '';
     uploadPreview.style.filter = '';
+    slider.classList.remove('visually-hidden');
+    setStartPositionSlider();
   };
 
-  // Функция расчета расчета степени эффекта, присвоение класса картинке, изменение значений в классе
-  var onEffectLevelLine = function (evt) {
-    var i = getFilters();
-    var coordsLevelLine = levelLine.getBoundingClientRect();
-    var leveLineWidth = coordsLevelLine.right - coordsLevelLine.left;
-    var valueEffectLevel = (evt.clientX - coordsLevelLine.left) / leveLineWidth * EFFECTS[i].maxEffect;
-    uploadPreview.style.filter = EFFECTS[i].filter + '(' + valueEffectLevel + EFFECTS[i].metrick + ')';
-
-  };
-
-  // Устанавливаем слушателей на radio button и pin
+  // устанавливает на все radio button обработчик клика
   for (var k = 0; k < effectRadioButton.length; k++) {
-    effectRadioButton[k].addEventListener('click', onEffectRadioButton);
+    effectRadioButton[k].addEventListener('click', changeFilter);
   }
-  levelLine.addEventListener('mouseup', onEffectLevelLine);
+
+
+  // Пользовательская настройка фильтра изображения
+  sliderHandle.addEventListener('mousedown', function (evt) {
+    evt.preventDefault();
+    var startCoordsX = evt.clientX;
+    var coordsLimits = sliderLine.getBoundingClientRect();
+
+
+    // функция отображение изменений в просмотре
+    var changePreviewStyle = function (changeEvt) {
+      var i = getNumberFilters();
+      var leveLineWidth = coordsLimits.right - coordsLimits.left;
+      var valueEffectLevel = (changeEvt.clientX - coordsLimits.left) / leveLineWidth;
+      if (changeEvt.clientX < coordsLimits.left) {
+        valueEffectLevel = 0;
+      }
+      if (changeEvt.clientX > coordsLimits.right) {
+        valueEffectLevel = 1;
+      }
+      effectInputValue.value = valueEffectLevel * EFFECTS[i].maxEffect;
+      effectInputValue.setAttribute('value', effectInputValue.value);
+      uploadPreview.style.filter = EFFECTS[i].filter + '(' + effectInputValue.value + EFFECTS[i].metrick + ')';
+    };
+
+
+    // При передвижении пина отрисовка элементов с учетом ограничений
+    var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+      if (moveEvt.clientX < coordsLimits.left) {
+        sliderHandle.style.left = '0px';
+        effectLineDepth.style.width = '0px';
+        startCoordsX = coordsLimits.left;
+      } else if (moveEvt.clientX > coordsLimits.right) {
+        sliderHandle.style.left = (coordsLimits.width - sliderHandle.offsetWidth / 2) + 'px';
+        effectLineDepth.style.width = coordsLimits.width + 'px';
+        startCoordsX = coordsLimits.right;
+      } else {
+        var shiftX = startCoordsX - moveEvt.clientX;
+        sliderHandle.style.left = (sliderHandle.offsetLeft - shiftX) + 'px';
+        effectLineDepth.style.width = (effectLineDepth.offsetWidth - shiftX) + 'px';
+        startCoordsX = moveEvt.clientX;
+      }
+      changePreviewStyle(moveEvt);
+    };
+
+    // При отпускании пина расчет значения фильтра
+    var onMouseUp = function (upEvt) {
+      changePreviewStyle(upEvt);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
 
 
   // БЛОК ВАЛИДАЦИИ ПОЛЯ ХЭШ-ТЕГОВ
-
   var hashTagsInput = document.querySelector('.text__hashtags');
+  var descriptionText = document.querySelector('.text__description');
   hashTagsInput.addEventListener('input', function (evt) {
     var tags = evt.target.value.split(' ');
 
@@ -358,7 +422,7 @@ var showUploadModal = function () {
       }
       return Object.keys(obj);
     }
-
+    // - получение количества заков #
     var sуmbolTags = evt.target.value.split('#');
 
     // - назначение условий валидности для поля ввода и создание подсказок об ошибках
@@ -373,7 +437,7 @@ var showUploadModal = function () {
     } else if (shortName.length > 0) {
       hashTagsInput.setCustomValidity('Хеш-тег не может состоять только из одной решётки');
     } else if (tags.length > getUniqueName(getTagsLowerCase()).length) {
-      hashTagsInput.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды.Теги нечувствительны к регистру: #ХэшТег и #хэштег считаются одним и тем же тегом.');
+      hashTagsInput.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
     } else {
       hashTagsInput.setCustomValidity('');
     }
