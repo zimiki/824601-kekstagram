@@ -141,7 +141,7 @@
   var changePreviewStyle = function () {
     var i = getNumberFilters();
     var valueEffectLevel = window.slider(sliderLine, sliderHandle, effectLineDepth);
-    console.log('ff' + valueEffectLevel); // Как сюда вернуть значение я не знаю
+    // Как сюда вернуть значение я не знаю
     effectInputValue.value = valueEffectLevel * EFFECTS[i].maxEffect;
     effectInputValue.setAttribute('value', effectInputValue.value);
     uploadPreview.style.filter = EFFECTS[i].filter + '(' + effectInputValue.value + EFFECTS[i].metrick + ')';
